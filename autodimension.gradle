@@ -1,13 +1,12 @@
 import org.w3c.dom.Document
 import org.w3c.dom.Element
+import org.w3c.dom.Node
+import org.w3c.dom.NodeList
 
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import java.util.regex.Matcher
 import java.util.regex.Pattern
-import org.w3c.dom.NodeList
-import org.w3c.dom.Node
-import org.w3c.dom.Element
 
 public class AutoFactory extends DefaultTask {
   @TaskAction
@@ -33,7 +32,7 @@ public class DimenFactory extends DefaultTask {
   double negativeMaxSP = 20
   int maxSize = 810;
   @Input
-  DimenType type = DimenType.FROM_LAYOUT
+  DimenType type = DimenType.AUTO_CREATE
   @Input
   String dimenFileName = "values/dimen.xml"
 
@@ -121,6 +120,48 @@ public class DimenFactory extends DefaultTask {
 
   def autoCreateDimen() {
     println "Auto create dimension file and values";
+
+    for (int dimen : dimens) {
+      String folder = resFolder + "values";
+      String fileName = folder + "/auto_dimens_positive.xml";
+      new File(folder).mkdir();
+      new File(fileName).createNewFile();
+      PrintWriter printWriter = new PrintWriter(fileName);
+      printWriter.println("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+      printWriter.println("<resources>");
+      for (int i = 0; i <= positiveMaxDP; i++) {
+        double sdp = i;
+        printWriter.printf("\t<dimen name=\"dp_%d\">%.2fdp</dimen>\r\n", i, sdp);
+      }
+      for (int i = 0; i <= positiveMaxSP; i++) {
+        double sdp = i;
+        printWriter.printf("\t<dimen name=\"sp_%d\">%.2fsp</dimen>\r\n", i, sdp);
+      }
+      printWriter.println("</resources>");
+      printWriter.close();
+    }
+    for (int dimen : dimens) {
+      String folder = resFolder + "values";
+      String fileName = folder + "/auto_dimens_negative.xml";
+      new File(folder).mkdir();
+      new File(fileName).createNewFile();
+      PrintWriter printWriter = new PrintWriter(fileName);
+      printWriter.println("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
+      printWriter.println("<resources>");
+      for (int i = 1; i <= negativeMaxDP; i++) {
+        double sdp = i;
+        printWriter.printf("\t<dimen name=\"dp_minus%d\">%.2fdp</dimen>\r\n", i, -sdp);
+      }
+      for (int i = 1; i <= negativeMaxSP; i++) {
+        double sdp = i;
+        printWriter.printf("\t<dimen name=\"sp_minus%d\">%.2fsp</dimen>\r\n", i, -sdp);
+      }
+      printWriter.println("</resources>");
+      printWriter.close();
+    }
+    println "Finish create auto dimensions base";
+
+    //aa
     for (int dimen : dimens) {
       String folder = resFolder + "values-sw" + (int) dimen + "dp";
       String fileName = folder + "/auto_dimens_positive.xml";
@@ -129,12 +170,12 @@ public class DimenFactory extends DefaultTask {
       PrintWriter printWriter = new PrintWriter(fileName);
       printWriter.println("<?xml version=\"1.0\" encoding=\"utf-8\"?>");
       printWriter.println("<resources>");
-      for (int i = 1; i <= positiveMaxDP; i++) {
+      for (int i = 0; i <= positiveMaxDP; i++) {
         double ratio = i / fromDimen;
         double sdp = ratio * dimen;
         printWriter.printf("\t<dimen name=\"dp_%d\">%.2fdp</dimen>\r\n", i, sdp);
       }
-      for (int i = 1; i <= positiveMaxSP; i++) {
+      for (int i = 0; i <= positiveMaxSP; i++) {
         double ratio = i / dimens[0];
         double sdp = ratio * dimen;
         printWriter.printf("\t<dimen name=\"sp_%d\">%.2fsp</dimen>\r\n", i, sdp);
@@ -163,6 +204,7 @@ public class DimenFactory extends DefaultTask {
       printWriter.println("</resources>");
       printWriter.close();
     }
+    println "Finish create auto dimensions";
   }
 
   def createDimenFromLayout() {
@@ -318,10 +360,10 @@ task createDimen(type: DimenFactory) {}
 createDimen {
   dimens = [320, 360, 384, 411, 480, 540, 600, 720, 800, 1024, 1080, 1280, 1440, 2560, 3840];
   fromDimen = 360
-  positiveMaxDP = 200 //change to 600 or any other value if needed
-  positiveMaxSP = 60 //change to 600 or any other value if needed
+  positiveMaxDP = 400 //change to 600 or any other value if needed
+  positiveMaxSP = 100 //change to 600 or any other value if needed
   negativeMaxDP = 60 //change to 600 or any other value if needed
   negativeMaxSP = 20 //change to 600 or any other value if needed
-  type = DimenType.FROM_DIMEN_FILE
-  dimenFileName = 'values/dimens.xml' // name of file, for type = DimenType.FROM_DIMEN_FILE only
+  type = DimenType.AUTO_CREATE
+//  dimenFileName = 'values/dimens.xml' // name of file, for type = DimenType.FROM_DIMEN_FILE only
 }
